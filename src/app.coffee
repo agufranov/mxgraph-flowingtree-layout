@@ -11,7 +11,7 @@ $ ->
     window["v#{n}"] = g.insertVertex p, null, n, 0, 0, 100, 30
 
   ie = (n1, n2) ->
-    window["e#{n1}_#{n2}"] = g.insertEdge parent, null, "#{n1}_#{n2}", window["v#{n1}"], window["v#{n2}"]
+    window["e#{n1}_#{n2}"] = g.insertEdge parent, null, " " or "#{n1}_#{n2}", window["v#{n1}"], window["v#{n2}"], 'orthogonal=1'
 
   iv 1
   iv 11

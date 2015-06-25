@@ -1,8 +1,11 @@
 class mxFlowingTreeLayout extends mxGraphLayout
-  constructor: (graph) ->
+  constructor: (graph, @options = {}) ->
     super graph
     @model = @graph.model
+    @options.dx ||= 40
+    @options.dy ||= 50
 
+    # debug
     window.g = graph
     window.m = @model
 
@@ -20,21 +23,18 @@ class mxFlowingTreeLayout extends mxGraphLayout
 
   moveNode: (node, x, y) ->
     g = @model.getGeometry node
-    g.x = 0 + 100 * x
-    g.y = 0 + 100 * y
+    g.x = 0 + @options.dx * x
+    g.y = 0 + @options.dy * y
     @model.setGeometry node, g
 
   execute: ->
     roots = @getAllVertices().filter (v) => @model.getIncomingEdges(v).length is 0
-    stack = []
+    i = 0
+
     for root in roots
       window.r = root
-      @dfs root, (node, depth) ->
-        stack.push node: node, depth: depth
-
-    i = 0
-    for el in stack
-      @moveNode el.node, el.depth, i
-      i += 1
+      @dfs root, (node, depth) =>
+        @moveNode node, depth, i
+        i++
 
     @graph.refresh()
