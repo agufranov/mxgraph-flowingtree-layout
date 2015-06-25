@@ -4,8 +4,8 @@ $ ->
   g.setEnabled(false)
   g.setConnectable(true)
   parent = g.getDefaultParent()
-  # new mxRubberband(g)
-  # prts(g)
+
+  layout = new mxFlowingTreeLayout(g)
 
   iv = (n, p = parent) ->
     window["v#{n}"] = g.insertVertex p, null, n, 0, 0, 100, 30
@@ -28,7 +28,5 @@ $ ->
   ie 11, 112
   ie 12, 121
   ie 2, 22
-
-  layout = new mxXLayout(g)
 
   layout.execute()

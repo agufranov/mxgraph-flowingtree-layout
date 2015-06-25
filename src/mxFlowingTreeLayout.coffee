@@ -34,7 +34,6 @@ class mxFlowingTreeLayout extends mxGraphLayout
 
     i = 0
     for el in stack
-      console.log el.node, el.depth
       @moveNode el.node, el.depth, i
       i += 1
 
