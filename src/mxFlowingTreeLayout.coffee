@@ -21,6 +21,22 @@ class mxFlowingTreeLayout extends mxGraphLayout
     for treeChild in @getTreeChildren node
       @dfs treeChild, fn, depth + 1
 
+  dfs2: (node, depth = 0, visible = true) ->
+    @moveNode node, depth, i
+    i += 1 if visible
+    node.setVisible visible
+    for treeChild in @getTreeChildren node
+      if node.data?.collapsed
+        visible = false
+      @dfs2 treeChild, depth + 1, visible
+
+  dfs3: (node, counter, depth = 0) ->
+    @moveNode node, depth, counter.call()
+    # console.log depth
+    for treeChild in node.treeChildren
+      # console.log 'treeChild', treeChild
+      @dfs3 treeChild, counter, depth + 1
+
   moveNode: (node, x, y) ->
     g = @model.getGeometry node
     g.x = 0 + @options.dx * x
@@ -28,13 +44,30 @@ class mxFlowingTreeLayout extends mxGraphLayout
     @model.setGeometry node, g
 
   execute: ->
-    roots = @getAllVertices().filter (v) => @model.getIncomingEdges(v).length is 0
-    i = 0
+    @graph.getModel().beginUpdate()
+    try
+      roots = @getAllVertices().filter (v) => @model.getIncomingEdges(v).length is 0
 
-    for root in roots
-      window.r = root
-      @dfs root, (node, depth) =>
-        @moveNode node, depth, i
-        i++
+      for root in roots
+        window.r = root
+        # @dfs2 root
 
-    @graph.refresh()
+        i = [0]
+        
+        @dfs3 root, ->
+          console.log 'COUNTER', i
+          i[0]++
+
+        
+        # @dfs root, (node, depth) =>
+        #   @moveNode node, depth, i
+        #   i++
+
+    finally
+      # morph = new mxMorphing(@graph, 15, 1.2, 50)
+      # morph.startAnimation()
+      # morph.addListener mxEvent.DONE, =>
+      #   @graph.getModel().endUpdate()
+      #   @graph.refresh()
+      @graph.getModel().endUpdate()
+      @graph.refresh()
