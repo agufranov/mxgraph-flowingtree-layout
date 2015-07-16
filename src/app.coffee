@@ -1,26 +1,29 @@
 $ ->
   data = {
-    id: 0
     content: '<div><span>i</span><a href="#">Link</a><div>e</div></div>'
     children: [
       {
-        id: 1, content: '1', children: [
+        content: '1', children: [
           {
-            id: 12
             content: '12'
             children: [
-              { id: 121, content: '<div>121</div><div><a href="#">here</a></div><div><span>pp</span></div>' }
-              { id: 122, content: '122' }
+              { content: '<div>121</div><div><a href="#">here</a></div><div><span>pp</span></div>' }
+              { content: '122', children: [
+                { content: '1221' }
+                { content: '1222' }
+                { content: '1223' }
+              ]}
+              { content: '123', children: [ { content: '1231' }, { content: '1232' } ] }
             ]
           }
         ]
       }
       {
-        id: 2, content: '2', children: [
-          { id: 22, content: '22' }
+        content: '2', children: [
+          { content: '22' }
         ]
       }
     ]
   }
 
-  new Tree data, SVG(document.getElementById('svg'))
+  window.t = new Tree data, SVG(document.getElementById('svg'))
