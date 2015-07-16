@@ -1,14 +1,14 @@
 class Tree
-  constructor: (@parentEl, @data, @options = {}) ->
+  constructor: (@parentEl, @data, @depth = 0, @options = {}) ->
     console.log @data
-    @options = $.extend { shiftWidth: 30, vMargin: 10, width: '100%', 'min-height': 0, padding: 10 }, @options
+    @options = $.extend { shiftWidth: 30, vMargin: 10, 'min-height': 0, padding: 10 }, @options
 
   render: ->
     @el = @parentEl.group()
     @headerEl = @el.group()
     r = @headerEl.rect()
     f = @headerEl.foreignObject()
-    wrapper = $('<div>').css(padding: @options.padding, width: @options.width, 'min-height': @options['min-height'], overflow: 'hidden', float: 'left').html(@data.content)[0]
+    wrapper = $('<div>').css(padding: @options.padding, width: 500 - @depth * @options.shiftWidth, 'min-height': @options['min-height'], overflow: 'hidden', float: 'left').html(@data.content)[0]
     f.appendChild wrapper
     wrapperSize = [wrapper.scrollWidth, wrapper.scrollHeight]
     f.size wrapperSize...
