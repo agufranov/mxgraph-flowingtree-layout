@@ -2,13 +2,14 @@ doctype html
 html
   head
     script(src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js")
-    script
-      |mxBasePath = 'mxgraph/javascript/src'
-
-    script(src='mxgraph/javascript/src/js/mxClient.js')
-    // script(src='mxFlowingTreeLayout.js')
-    script(src='ports.js')
-    script(src='graph.js')
+    script(src='svg.js')
+    script(src='svg.foreignobject.js')
+    // script(src='treeStack.js')
+    script(src='treeTree.js')
     script(src='app.js')
+    style
+      | rect { fill: #EEF; stroke: gray; stroke-width: 1px }
+      | .node-wrapper { min-height: 30px; padding: 10px; }
   body
     #container
+    svg#svg(style="width: 1024px; height: 768px;")
