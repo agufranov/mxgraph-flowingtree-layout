@@ -1,12 +1,24 @@
+class TreeBase
+  constructor: (@data, parent, @depth = 0, @options = {}) ->
+    # Default options
+    @options = $.extend { vShift: 90, hMargin: 20, parentLineShift: 30 }, @options
+    # Setup parent
+    [@parent, @parentEl] = if parent instanceof Tree then [parent, parent.childrenEl] else [null, parent]
+  createElements: ->
+    # Main wrapper
+    @el = @parentEl.group()
+    # Header wrapper
+    @headerEl = @el.group()
+    # Children wrapper
+    if @data.children
+      @childrenEl = @el.group()
+
+  render: ->
+
 class Tree
   constructor: (@data, parent, @depth = 0, @options = {}) ->
     @options = $.extend { vShift: 90, hMargin: 20, parentLineShift: 30 }, @options
-    if parent instanceof Tree
-      @parent = parent
-      @parentEl = parent.childrenEl
-    else
-      @parent = null
-      @parentEl = parent
+    [@parent, @parentEl] = if parent instanceof Tree then [parent, parent.childrenEl] else [null, parent]
 
     @el = @parentEl.group()
 

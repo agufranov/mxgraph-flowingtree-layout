@@ -26,4 +26,10 @@ $ ->
     ]
   }
 
-  window.t = new Tree data, SVG(document.getElementById('svg'))
+  # window.t = new Tree data, SVG(document.getElementById('svg'))
+  window.s = SVG(svg)
+  window.h1 = new HtmlTreeStack s, '<h1>Hello</h1><div><a href="#">[link]</a></div><div>a</div><div>a</div>', 30, null
+  window.h2 = new HtmlTreeStack s, '<h1>Hello</h1><div><a href="#">[link]</a></div><div>a</div><div>a</div>', 30, null
+  window.g = new GroupTreeStack s
+  g.children.push h1, h2
+  g.render()
