@@ -37,7 +37,7 @@ class TreeStack extends HeightPublisher
 
 # Renders HTML content inside SVG and fits height
 class HtmlTreeStack extends TreeStack
-  constructor: (@_parentEl, @content, @minHeight, @defaultWidth = '100%') ->
+  constructor: (@_parentEl, @content, @minHeight = 0, @defaultWidth = '100%') ->
     super arguments...
 
   _renderFn: ->
@@ -46,7 +46,6 @@ class HtmlTreeStack extends TreeStack
     wrapper = $('<div>').css(width: @defaultWidth, 'min-height': @minHeight).addClass('content-wrapper').html(@content)[0]
     foreignObject.appendChild wrapper
     [width, height] = [$(wrapper).outerWidth(), $(wrapper).outerHeight()]
-    console.log width, height
     rect.size width, height
     foreignObject.size width, height
 
@@ -55,13 +54,43 @@ class HtmlTreeStack extends TreeStack
 
 # SVG group with nesting
 class GroupTreeStack extends TreeStack
-  constructor: (@_parentEl, @children = []) ->
+  constructor: (@_parentEl, @children = [], @options = {}) ->
     super arguments...
+    @options = $.extend { vMargin: 10 }, @options
+    @_updating = false
+
+  rearrange: (animate = false) ->
+    h = 0
+    for child in @children
+      el = if animate then child._el.animate() else child._el
+      el.move 0, h
+      h += child.getHeight() + @options.vMargin
+
+  beginUpdate: -> @_updating = true
+  endUpdate: ->
+    @_updating = false
+    @rearrange()
 
   _renderFn: ->
+    @beginUpdate()
     for child in @children
-      child._parentEl = @_el
-      child.onHeightChanged -> console.log 'Changed!', arguments
+      child.onHeightChanged (node, height) =>
+        @rearrange true if not @_updating
       child.render()
+    @endUpdate()
 
   _gClass: -> 'group-tree-stack'
+
+
+# Experimental tree
+class TreeTreeStack extends GroupTreeStack
+  constructor: (@_parentEl, @data, @options = {}) ->
+    super @parentEl, [], @options
+
+  addChildren: ->
+    @header = new GroupTreeStack @_el
+    @header.chidren.push new HtmlTreeStack @header._el
+    return unless @data.children
+
+  _renderFn: ->
+    @addChildren()

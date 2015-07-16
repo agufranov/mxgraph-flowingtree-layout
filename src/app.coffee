@@ -1,6 +1,11 @@
 $ ->
-  data = {
-    content: '<div><span>i</span><a href="#">Link</a><div>e</div></div>'
+  data =
+    # { content: 'a', children: [
+    #   { content: 'b' }
+    #   { content: 'c' }
+    # ]}
+  {
+    content: '<span>ALPHABETAGAMMA</span>'
     children: [
       {
         content: '1', children: [
@@ -26,10 +31,6 @@ $ ->
     ]
   }
 
-  # window.t = new Tree data, SVG(document.getElementById('svg'))
-  window.s = SVG(svg)
-  window.h1 = new HtmlTreeStack s, '<h1>Hello</h1><div><a href="#">[link]</a></div><div>a</div><div>a</div>', 30, null
-  window.h2 = new HtmlTreeStack s, '<h1>Hello</h1><div><a href="#">[link]</a></div><div>a</div><div>a</div>', 30, null
-  window.g = new GroupTreeStack s
-  g.children.push h1, h2
-  g.render()
+  window.s = SVG(document.getElementById('svg'))
+  window.t = new Tree s, data
+  t.render()
