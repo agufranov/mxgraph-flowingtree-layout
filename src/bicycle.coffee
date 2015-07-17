@@ -1,96 +1,95 @@
-# Model with onHeightChanged event
-class HeightPublisher
-  constructor: ->
-    @__heightChangedCallbacks = []
+class A
+  constructor: (@options = {}) ->
+    _.defaults @options, @getDefaultOptions()
 
+  getDefaultOptions: -> {}
+  renderTo: (@_parentEl) ->
+  moveTo: -> throw new Error 'Not Implemented'
   getHeight: -> throw new Error 'Not Implemented'
-
-  onHeightChanged: (cb) -> @__heightChangedCallbacks.push cb
-  notifyHeightChanged: -> cb @, @getHeight() for cb in @__heightChangedCallbacks
+  _elFn: -> throw new Error 'Not Implemented'
 
 
-# SVG group as node of tree stack
-class TreeStack extends HeightPublisher
-  constructor: (@_parentEl) ->
-    super arguments...
-    @domInitialized = false
-
-  getHeight: ->
-    @_el.node.getBoundingClientRect().height
-
-  # This method affects DOM, renders and fires 'height changed' event
-  render: ->
-    @_initDOM() unless @domInitialized
-    @_renderFn()
-    @notifyHeightChanged()
-
-  # Abstract. Must be overriden
-  _renderFn: -> throw new Error 'Not Implemented'
-
-  _gClass: -> throw new Error 'Not Implemented'
-
-  _initDOM: ->
-    @_el = @_parentEl.group().addClass(@_gClass())
-    console.log 'DOM Initialized'
-    @domInitialized = true
+class SvgA extends A
+  constructor: (options) -> super options
+  moveTo: (x, y) ->
+    @_el.move x, y
+    @
+  moveBy: (x, y) ->
+    @_el.dmove x, y
+    @
+  getHeight: -> @_el.node.getBBox().height
+  renderTo: (_parentEl) ->
+    super _parentEl
+    @_el = @_elFn @_parentEl
+    @
+  _elFn: (parentEl) -> parentEl.group()
 
 
-# Renders HTML content inside SVG and fits height
-class HtmlTreeStack extends TreeStack
-  constructor: (@_parentEl, @content, @minHeight = 0, @defaultWidth = '100%') ->
-    super arguments...
-
-  _renderFn: ->
-    @_el.clear()
-    [rect, foreignObject] = [@_el.rect(@width, 0), @_el.foreignObject @width, 0]
-    wrapper = $('<div>').css(width: @defaultWidth, 'min-height': @minHeight).addClass('content-wrapper').html(@content)[0]
-    foreignObject.appendChild wrapper
-    [width, height] = [$(wrapper).outerWidth(), $(wrapper).outerHeight()]
-    rect.size width, height
-    foreignObject.size width, height
-
-  _gClass: -> 'html-tree-stack'
+class R extends SvgA
+  constructor: (@width, @height) -> super()
+  renderTo: (@_parentEl) -> @_el = @_parentEl.rect(@width, @height).stroke('#FEE')
+  _elFn: (parentEl) -> parentEl.rect @width, @height
 
 
-# SVG group with nesting
-class GroupTreeStack extends TreeStack
-  constructor: (@_parentEl, @children = [], @options = {}) ->
-    super arguments...
-    @options = $.extend { vMargin: 10 }, @options
-    @_updating = false
+class HR extends SvgA
+  constructor: (@content, options) ->
+    super options
 
-  rearrange: (animate = false) ->
-    h = 0
-    for child in @children
-      el = if animate then child._el.animate() else child._el
-      el.move 0, h
-      h += child.getHeight() + @options.vMargin
+  getDefaultOptions: -> _.merge super(), htmlPadding: 10, htmlWidth: null
 
-  beginUpdate: -> @_updating = true
-  endUpdate: ->
-    @_updating = false
-    @rearrange()
+  renderTo: (_parentEl) ->
+    super _parentEl
+    r = @_el.rect()
+    f = @_el.foreignObject()
+    wrapper = $('<div>').css(padding: @options.htmlPadding, float: 'left', width: @options.htmlWidth).html @content
+    f.appendChild wrapper[0]
+    wrapperSize = [ wrapper.outerWidth(), wrapper.outerHeight() ]
+    r.size wrapperSize...
+    f.size wrapperSize...
+    
 
-  _renderFn: ->
-    @beginUpdate()
-    for child in @children
-      child.onHeightChanged (node, height) =>
-        @rearrange true if not @_updating
-      child.render()
-    @endUpdate()
+class G extends SvgA
+  constructor: (options) ->
+    super options
+    @_children = []
 
-  _gClass: -> 'group-tree-stack'
+  getDefaultOptions: -> _.merge super(), groupChildMargin: 5
+
+  renderTo: (_parentEl) ->
+    super _parentEl
+    for child in @_children
+      child.renderTo @_el
+    @arrangeChildren()
+
+  getHeight: -> @height
+
+  addChild: (child) ->
+    @_children.push child
+    child
+
+  arrangeChildren: ->
+    heightAcc = 0
+    return unless @_children.length
+    for child, index in @_children
+      child.moveTo 0, heightAcc
+      heightAcc += child.getHeight()
+      heightAcc += @options.groupChildMargin if index < @_children.length - 1
+      debugger if _.isNaN heightAcc
+    @height = heightAcc
 
 
-# Experimental tree
-class TreeTreeStack extends GroupTreeStack
-  constructor: (@_parentEl, @data, @options = {}) ->
-    super @parentEl, [], @options
+class T extends G
+  constructor: (@data, @depth = 0, options) ->
+    super options
+    @options.groupChildMargin = @options.treeNestedMargin
+    @_headerEl = @addChild new HR @data.c, htmlWidth: @options.treeWidth - @options.treeDepthShift * @depth
+    if @data.d
+      @_childrenEl = @addChild new G groupChildMargin: @options.treeFlatMargin
+      @_childrenEl.addChild new T childData, @depth + 1, options for childData in @data.d
 
-  addChildren: ->
-    @header = new GroupTreeStack @_el
-    @header.chidren.push new HtmlTreeStack @header._el
-    return unless @data.children
+  getDefaultOptions: -> _.merge super(), treeFlatMargin: 20, treeNestedMargin: 5, treeDepthShift: 30, treeWidth: 300
 
-  _renderFn: ->
-    @addChildren()
+  renderTo: (_parentEl) ->
+    super _parentEl
+    # TODO public method
+    @_childrenEl.moveBy @options.treeDepthShift, 0 if @_childrenEl
